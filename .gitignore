@@ -1,0 +1,9 @@
+.*~
+\#*\#
+.\#*
+**/build/
+**/docs/
+**/*~
+notizen.txt
+*.bpe
+*.dot
