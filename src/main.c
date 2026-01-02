@@ -29,6 +29,7 @@ int main()
             .mipmaps = 1
         };
 
+        // TODO: use update texture
         Texture2D texture = LoadTextureFromImage(img);
 
         BeginDrawing();
@@ -37,6 +38,7 @@ int main()
         ClearBackground(BLACK);
 
         EndDrawing();
+        UnloadTexture(texture);
         pix_buf_idx = (pix_buf_idx == 1) ? 0 : 1;
     }
 
