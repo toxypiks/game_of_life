@@ -2,6 +2,43 @@
 #include "raylib.h"
 #include "pixelbuffer.h"
 
+int v(Color color){
+    if(ColorToInt(color) == ColorToInt(WHITE)) {
+        return 1;
+    }
+    else 0;
+}
+
+// check if alive
+// calc_cell_state
+Color is_alive(PixelBuf* old_pixbuf, size_t x, size_t y)
+{
+    //TODO: big if statement for neighbors
+    // if -> return WHITE
+    size_t w = old_pixbuf->width;
+    int sum =   v(old_pixbuf->pixels[(y - 1)*w + (x - 1)])
+              + v(old_pixbuf->pixels[(y - 1)*w + x])
+              + v(old_pixbuf->pixels[(y - 1)*w + (x -+1)])
+              + v(old_pixbuf->pixels[ y*w      + (x - 1)])
+              + v(old_pixbuf->pixels[ y*w      + (x + 1)])
+              + v(old_pixbuf->pixels[(y + 1)*w + (x - 1)])
+              + v(old_pixbuf->pixels[(y + 1)*w + x])
+              + v(old_pixbuf->pixels[(y + 1)*w + (x - 1)]);
+    if((sum == 2) || (sum == 3) )
+      return WHITE;
+    return BLACK;
+}
+
+void set_cell_states(PixelBuf* old_pixbuf, PixelBuf* new_pixbuf)
+{
+    for (size_t y = 1; y < old_pixbuf->height - 1; ++y) {
+        for (size_t x = 1; x < old_pixbuf->width - 1; ++x) {
+            new_pixbuf->pixels[y*new_pixbuf->width + x] = is_alive(old_pixbuf, x, y);
+        }
+    }
+}
+
+
 int main()
 {
     const int screen_width = 800;
@@ -21,6 +58,10 @@ int main()
     size_t pix_buf_idx = 0;
     while(!WindowShouldClose())
     {
+        // generate new state
+        // for
+        //   for
+        //       is_alive(i,j)
         Image img = {
             .data = pixelbuffer[pix_buf_idx]->pixels,
             .width = screen_width,
