@@ -3,39 +3,43 @@
 #include "raylib.h"
 #include "pixelbuffer.h"
 
-int v(Color color){
+unsigned int val(Color color){
     if(ColorToInt(color) == ColorToInt(WHITE)) {
         return 1;
     }
-    else 0;
+    else return 0;
 }
 
 void initialize_pixelbuf(PixelBuf* pixbuf, float threshold)
 {
-    for (size_t i = 0; i < (pixbuf->width * pixbuf->height); i++){
-        float rand_number = rand() / (float) RAND_MAX;
-        pixbuf->pixels[i] = (rand_number > threshold) ? BLACK : WHITE;
+    for (int y = 1; y < pixbuf->height - 1; ++y) {
+        for (int x = 1; x < pixbuf->width - 1; ++x) {
+            // time as seed
+            float rand_number = rand() / (float) RAND_MAX;
+            pixbuf->pixels[y * pixbuf->width + x] = (rand_number > threshold) ? BLACK : WHITE;
+        }
     }
 }
 
-// check if alive
-// calc_cell_state
 Color is_alive(PixelBuf* old_pixbuf, size_t x, size_t y)
 {
-    //TODO: big if statement for neighbors
-    // if -> return WHITE
     size_t w = old_pixbuf->width;
-    int sum =   v(old_pixbuf->pixels[(y - 1)*w + (x - 1)])
-              + v(old_pixbuf->pixels[(y - 1)*w + x])
-              + v(old_pixbuf->pixels[(y - 1)*w + (x -+1)])
-              + v(old_pixbuf->pixels[ y*w      + (x - 1)])
-              + v(old_pixbuf->pixels[ y*w      + (x + 1)])
-              + v(old_pixbuf->pixels[(y + 1)*w + (x - 1)])
-              + v(old_pixbuf->pixels[(y + 1)*w + x])
-              + v(old_pixbuf->pixels[(y + 1)*w + (x - 1)]);
-    if((sum == 2) || (sum == 3) )
-      return WHITE;
-    return BLACK;
+    unsigned int sum =   val(old_pixbuf->pixels[(y - 1)*w + (x - 1)])
+              + val(old_pixbuf->pixels[(y - 1)*w + x])
+              + val(old_pixbuf->pixels[(y - 1)*w + (x + 1)])
+              + val(old_pixbuf->pixels[ y*w      + (x - 1)])
+              + val(old_pixbuf->pixels[ y*w      + (x + 1)])
+              + val(old_pixbuf->pixels[(y + 1)*w + (x - 1)])
+              + val(old_pixbuf->pixels[(y + 1)*w + x])
+              + val(old_pixbuf->pixels[(y + 1)*w + (x + 1)]);
+
+    if(sum == 2){
+        return old_pixbuf->pixels[y*w + x]; // old value
+    } else if (sum == 3){
+        return WHITE;
+    } else {
+        return BLACK;
+    }
 }
 
 void set_cell_states(PixelBuf* old_pixbuf, PixelBuf* new_pixbuf)
@@ -47,31 +51,28 @@ void set_cell_states(PixelBuf* old_pixbuf, PixelBuf* new_pixbuf)
     }
 }
 
-
 int main()
 {
-    const int screen_width = 800;
-    const int screen_height = 450;
+    const int screen_width = 400;
+    const int screen_height = 400;
 
     PixelBuf* pixelbuffer[2] = {0};
     pixelbuffer[0] = create_pixelbuf(screen_width, screen_height);
     pixelbuffer[1] = create_pixelbuf(screen_width, screen_height);
 
-    fill_pixels(pixelbuffer[0], GREEN);
-    fill_pixels(pixelbuffer[1], BLUE);
+    fill_pixels(pixelbuffer[0], BLACK);
+    fill_pixels(pixelbuffer[1], BLACK);
 
     InitWindow(screen_width, screen_height, "Game of Life");
 
-    SetTargetFPS(1);
+    SetTargetFPS(10);
 
     size_t pix_buf_idx = 0;
-    initialize_pixelbuf(pixelbuffer[0], 0.2f);
+    initialize_pixelbuf(pixelbuffer[0], 0.3f);
     while(!WindowShouldClose())
     {
-        // generate new state
-        // for
-        //   for
-        //       is_alive(i,j)
+        set_cell_states(pixelbuffer[pix_buf_idx], pixelbuffer[(pix_buf_idx == 0)]);
+
         Image img = {
             .data = pixelbuffer[pix_buf_idx]->pixels,
             .width = screen_width,
