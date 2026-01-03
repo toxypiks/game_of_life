@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "raylib.h"
 #include "pixelbuffer.h"
 
@@ -7,6 +8,14 @@ int v(Color color){
         return 1;
     }
     else 0;
+}
+
+void initialize_pixelbuf(PixelBuf* pixbuf, float threshold)
+{
+    for (size_t i = 0; i < (pixbuf->width * pixbuf->height); i++){
+        float rand_number = rand() / (float) RAND_MAX;
+        pixbuf->pixels[i] = (rand_number > threshold) ? BLACK : WHITE;
+    }
 }
 
 // check if alive
@@ -56,6 +65,7 @@ int main()
     SetTargetFPS(1);
 
     size_t pix_buf_idx = 0;
+    initialize_pixelbuf(pixelbuffer[0], 0.2f);
     while(!WindowShouldClose())
     {
         // generate new state
