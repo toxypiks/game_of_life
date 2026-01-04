@@ -2,10 +2,7 @@
 
 [Game Of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
 
-
-
-
-
-
-
-<video src="game_of_life.mp4" controls autoplay muted loop width="800"></video>
+<video width="480" controls>
+  <source src="video_output/game_of_life.mp4" type="video/mp4">
+  Your browser can't open the video.
+</video>
