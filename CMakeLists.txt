@@ -43,6 +43,7 @@ target_include_directories(game_of_life
 target_link_libraries(game_of_life
   ${raylib_LIBRARIES}
   pixelbuffer
+  m
 )
 
 set(MAIN_SRC

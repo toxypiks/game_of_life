@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "raymath.h"
 
 unsigned int val(Color color){
     if(ColorToInt(color) == ColorToInt(WHITE)) {
@@ -69,8 +70,49 @@ void game_loop(int fps, size_t width, size_t height, int pipe_write, size_t star
     InitWindow(width, height, "Game Of Life");
     SetTargetFPS(fps);
 
-    for (size_t i = 0; i < fps*duration && !WindowShouldClose(); ++i) {
+    // zoom stuff:
+    Camera2D camera = { 0 };
+    camera.zoom = 1.0f;
+    int zoomMode = 1;
 
+    for (size_t i = 0; i < fps*duration && !WindowShouldClose(); ++i) {
+        if (IsKeyPressed(KEY_ONE)) zoomMode = 0;
+        else if (IsKeyPressed(KEY_TWO)) zoomMode = 1;
+
+        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+        {
+            Vector2 delta = GetMouseDelta();
+            delta = Vector2Scale(delta, -1.0f/camera.zoom);
+            camera.target = Vector2Add(camera.target, delta);
+        }
+
+        if (zoomMode == 0)
+        {
+            // Zoom based on mouse wheel
+            float wheel = GetMouseWheelMove();
+            if (wheel != 0)
+            {
+                Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
+                camera.offset = GetMousePosition();
+                camera.target = mouseWorldPos;
+                float scale = 0.2f*wheel;
+                camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0.125f, 64.0f);
+            }
+        } else { // righclick zoom
+            if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+            {
+                Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
+                camera.offset = GetMousePosition();
+                camera.target = mouseWorldPos;
+            }
+
+            if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+            {
+                float deltaX = GetMouseDelta().x;
+                float scale = 0.005f*deltaX;
+                camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0.125f, 64.0f);
+            }
+        }
         set_cell_states(pixelbuffer[pix_buf_idx], pixelbuffer[(pix_buf_idx == 0)]);
 
         Image img = {
@@ -84,10 +126,12 @@ void game_loop(int fps, size_t width, size_t height, int pipe_write, size_t star
         Texture2D texture = LoadTextureFromImage(img);
 
         BeginDrawing();
+        BeginMode2D(camera);
 
         ClearBackground(*(Color*)(uint32_t[1]){0xFF181818});
         DrawTexture(texture, 0, 0, WHITE);
 
+        EndMode2D();
         EndDrawing();
 
         pix_buf_idx = (pix_buf_idx == 1) ? 0 : 1;
