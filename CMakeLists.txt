@@ -42,4 +42,24 @@ target_include_directories(main
 target_link_libraries(main
   ${raylib_LIBRARIES}
   pixelbuffer
+)
+
+set(GAME_OF_LIFE_FFMPEG_SRC
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/game_of_life_ffmpeg.c
+  )
+
+add_executable(game_of_life_ffmpeg)
+target_sources(game_of_life_ffmpeg
+ PRIVATE
+  ${GAME_OF_LIFE_FFMPEG_SRC}
+)
+
+target_include_directories(game_of_life_ffmpeg
+ PRIVATE
+  ${raylib_INCLUDE_DIRS}
+  )
+
+target_link_libraries(game_of_life_ffmpeg
+  ${raylib_LIBRARIES}
+  pixelbuffer
   )
