@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include <raylib.h>
+#include "game_of_life.h"
 #include "pixelbuffer.h"
 
 #define READ_END 0
@@ -16,6 +17,7 @@
 
 #define WIDTH 800
 #define HEIGHT 600
+#define FPS 10
 
 // hack that returns the value of the argument of macro as a string
 // STR(FPS) would return 60 now
@@ -23,54 +25,6 @@
 #define STR(x) STR2(x)
 
 uint32_t pixels[WIDTH*HEIGHT];
-
-unsigned int val(Color color){
-    if(ColorToInt(color) == ColorToInt(WHITE)) {
-        return 1;
-    }
-    else return 0;
-}
-
-void initialize_pixelbuf(PixelBuf* pixbuf, float threshold)
-{
-    for (int y = 1; y < pixbuf->height - 1; ++y) {
-        for (int x = 1; x < pixbuf->width - 1; ++x) {
-            // time as seed
-            float rand_number = rand() / (float) RAND_MAX;
-            pixbuf->pixels[y * pixbuf->width + x] = (rand_number > threshold) ? BLACK : WHITE;
-        }
-    }
-}
-
-Color is_alive(PixelBuf* old_pixbuf, size_t x, size_t y)
-{
-    size_t w = old_pixbuf->width;
-    unsigned int sum =   val(old_pixbuf->pixels[(y - 1)*w + (x - 1)])
-              + val(old_pixbuf->pixels[(y - 1)*w + x])
-              + val(old_pixbuf->pixels[(y - 1)*w + (x + 1)])
-              + val(old_pixbuf->pixels[ y*w      + (x - 1)])
-              + val(old_pixbuf->pixels[ y*w      + (x + 1)])
-              + val(old_pixbuf->pixels[(y + 1)*w + (x - 1)])
-              + val(old_pixbuf->pixels[(y + 1)*w + x])
-              + val(old_pixbuf->pixels[(y + 1)*w + (x + 1)]);
-
-    if(sum == 2){
-        return old_pixbuf->pixels[y*w + x]; // old value
-    } else if (sum == 3){
-        return WHITE;
-    } else {
-        return BLACK;
-    }
-}
-
-void set_cell_states(PixelBuf* old_pixbuf, PixelBuf* new_pixbuf)
-{
-    for (size_t y = 1; y < old_pixbuf->height - 1; ++y) {
-        for (size_t x = 1; x < old_pixbuf->width - 1; ++x) {
-            new_pixbuf->pixels[y*new_pixbuf->width + x] = is_alive(old_pixbuf, x, y);
-        }
-    }
-}
 
 int main (void)
 {
@@ -86,9 +40,9 @@ int main (void)
     fprintf(stderr, "ERROR: could not fork a child: %s\n", strerror(errno));
     return 1;
   }
-  if (child == 0) {
-    // replace standard input of ffmpeg with the read end of the pipe (pipefd[0])
-    // dup2(pipefd[READ_END], STDIN_FILENO);
+  if (child == 0) { // ffmpeg
+  // replace standard input of ffmpeg with the read end of the pipe (pipefd[0])
+
     if (dup2(pipefd[READ_END], STDIN_FILENO) < 0) {
       fprintf(stderr, "ERROR: could not reopen read end of pipe as stdin: %s\n", strerror(errno));
       return 1;
@@ -114,9 +68,10 @@ int main (void)
       return 1;
     }
     assert(0 && "unreachable");
-  }
+  } // Game of Life part
   close(pipefd[READ_END]);
 
+  // TODO: put this in a function
   size_t duration = 10;
 
   PixelBuf* pixelbuffer[2] = {0};
@@ -153,15 +108,12 @@ int main (void)
 
       EndDrawing();
 
-      Image image = LoadImageFromTexture(texture);
       pix_buf_idx = (pix_buf_idx == 1) ? 0 : 1;
 
       // flip image -> writing rows in reversed order
       for (size_t y = HEIGHT; y > 0; --y) {
-          write(pipefd[WRITE_END], (uint32_t*)image.data + (y - 1)*WIDTH, sizeof(uint32_t)*WIDTH);
+          write(pipefd[WRITE_END], (uint32_t*)img.data + (y - 1)*WIDTH, sizeof(uint32_t)*WIDTH);
       }
-
-      UnloadImage(image);
   }
   CloseWindow();
 

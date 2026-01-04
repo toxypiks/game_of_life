@@ -24,6 +24,27 @@ target_include_directories(pixelbuffer
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+set(GAME_OF_LIFE_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/game_of_life.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/game_of_life.h
+)
+
+add_library(game_of_life)
+target_sources(game_of_life
+ PRIVATE
+  ${GAME_OF_LIFE_SOURCES}
+  )
+
+target_include_directories(game_of_life
+ PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(game_of_life
+  ${raylib_LIBRARIES}
+  pixelbuffer
+)
+
 set(MAIN_SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
   )
@@ -62,4 +83,5 @@ target_include_directories(game_of_life_ffmpeg
 target_link_libraries(game_of_life_ffmpeg
   ${raylib_LIBRARIES}
   pixelbuffer
+  game_of_life
   )
