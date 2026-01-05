@@ -1,9 +1,13 @@
-#include "game_of_life.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <time.h>
+
 #include "raymath.h"
+
+#include "game_of_life.h"
 
 unsigned int val(Color color){
     if(ColorToInt(color) == ColorToInt(WHITE)) {
@@ -14,6 +18,7 @@ unsigned int val(Color color){
 
 void initialize_pixelbuf(PixelBuf* pixbuf, float threshold)
 {
+    srand(time(NULL));
     for (int y = 1; y < pixbuf->height - 1; ++y) {
         for (int x = 1; x < pixbuf->width - 1; ++x) {
             // time as seed
