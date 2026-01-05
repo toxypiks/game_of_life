@@ -55,7 +55,7 @@ void set_cell_states(PixelBuf* old_pixbuf, PixelBuf* new_pixbuf)
 
 void game_loop(int fps, size_t width, size_t height, int pipe_write, size_t start_video){
     size_t frame_count = 0;
-    size_t duration = 100;
+    size_t duration = 20;
 
     PixelBuf* pixelbuffer[2] = {0};
     pixelbuffer[0] = create_pixelbuf(width, height);

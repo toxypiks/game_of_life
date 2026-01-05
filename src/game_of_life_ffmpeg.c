@@ -68,7 +68,7 @@ int main (void)
     }
     close(pipefd[READ_END]);
 
-    game_loop(FPS, WIDTH, HEIGHT, pipefd[WRITE_END], 50);
+    game_loop(FPS, WIDTH, HEIGHT, pipefd[WRITE_END], 100);
 
     close(pipefd[WRITE_END]);
 
