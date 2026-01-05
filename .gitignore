@@ -2,6 +2,7 @@
 \#*\#
 .\#*
 **/build/
+**/video_output/
 **/docs/
 **/*~
 notizen.txt

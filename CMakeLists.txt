@@ -46,22 +46,22 @@ target_link_libraries(game_of_life
   m
 )
 
-set(MAIN_SRC
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
+set(GAME_OF_LIFE_MAIN_SRC
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/game_of_life_main.c
   )
 
-add_executable(main)
-target_sources(main
+add_executable(game_of_life_main)
+target_sources(game_of_life_main
  PRIVATE
-  ${MAIN_SRC}
+  ${GAME_OF_LIFE_MAIN_SRC}
 )
 
-target_include_directories(main
+target_include_directories(game_of_life_main
  PRIVATE
   ${raylib_INCLUDE_DIRS}
   )
 
-target_link_libraries(main
+target_link_libraries(game_of_life_main
   ${raylib_LIBRARIES}
   pixelbuffer
   game_of_life
