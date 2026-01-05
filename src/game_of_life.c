@@ -228,10 +228,12 @@ void game_loop_video_capture(int fps, size_t width, size_t height, int pipe_writ
         pix_buf_idx = (pix_buf_idx == 1) ? 0 : 1;
 
         if(frame_count > start_video) {
+            Image screen = LoadImageFromScreen();
             // flip image -> writing rows in reversed order
-            for (size_t y = height; y > 0; --y) {
-                write(pipe_write, (uint32_t*)img.data + (y - 1)*width, sizeof(uint32_t)*width);
+            for (size_t y = screen.height; y > 0; --y) {
+                write(pipe_write, (uint8_t*)screen.data + (y - 1)*screen.width*4, screen.width*4);
             }
+            UnloadImage(screen);
         }
         frame_count++;
     }
