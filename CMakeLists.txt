@@ -64,6 +64,7 @@ target_include_directories(main
 target_link_libraries(main
   ${raylib_LIBRARIES}
   pixelbuffer
+  game_of_life
 )
 
 set(GAME_OF_LIFE_FFMPEG_SRC
