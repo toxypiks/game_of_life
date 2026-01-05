@@ -9,6 +9,6 @@
 
 int main()
 {
-    game_loop(10, 400, 400);
+    game_loop(10, 400, 400, false, 0, 0, 0);
     return 0;
 }

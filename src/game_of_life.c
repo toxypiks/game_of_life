@@ -53,100 +53,8 @@ void set_cell_states(PixelBuf* old_pixbuf, PixelBuf* new_pixbuf)
     }
 }
 
-void game_loop(int fps, size_t width, size_t height)
-{
-    PixelBuf* pixelbuffer[2] = {0};
-    pixelbuffer[0] = create_pixelbuf(width, height);
-    pixelbuffer[1] = create_pixelbuf(width, height);
-
-    fill_pixels(pixelbuffer[0], BLACK);
-    fill_pixels(pixelbuffer[1], BLACK);
-
-    InitWindow(width, height, "Game of Life");
-
-    SetTargetFPS(fps);
-
-    size_t pix_buf_idx = 0;
-    initialize_pixelbuf(pixelbuffer[0], 0.3f);
-
-    // zoom stuff:
-    Camera2D camera = { 0 };
-    camera.zoom = 1.0f;
-    int zoomMode = 1;
-
-    while(!WindowShouldClose())
-    {
-        if (IsKeyPressed(KEY_ONE)) zoomMode = 0;
-        else if (IsKeyPressed(KEY_TWO)) zoomMode = 1;
-
-        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
-        {
-            Vector2 delta = GetMouseDelta();
-            delta = Vector2Scale(delta, -1.0f/camera.zoom);
-            camera.target = Vector2Add(camera.target, delta);
-        }
-
-        if (zoomMode == 0)
-        {
-            // Zoom based on mouse wheel
-            float wheel = GetMouseWheelMove();
-            if (wheel != 0)
-            {
-                Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
-                camera.offset = GetMousePosition();
-                camera.target = mouseWorldPos;
-                float scale = 0.2f*wheel;
-                camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0.125f, 64.0f);
-            }
-        } else { // righclick zoom
-            if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
-            {
-                Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
-                camera.offset = GetMousePosition();
-                camera.target = mouseWorldPos;
-            }
-
-            if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
-            {
-                float deltaX = GetMouseDelta().x;
-                float scale = 0.005f*deltaX;
-                camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0.125f, 64.0f);
-            }
-        }
-
-        set_cell_states(pixelbuffer[pix_buf_idx], pixelbuffer[(pix_buf_idx == 0)]);
-
-        Image img = {
-            .data = pixelbuffer[pix_buf_idx]->pixels,
-            .width = width,
-            .height = height,
-            .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
-            .mipmaps = 1
-        };
-
-        // TODO: use update texture
-        Texture2D texture = LoadTextureFromImage(img);
-
-        BeginDrawing();
-        BeginMode2D(camera);
-
-        ClearBackground(DARKBLUE);
-        DrawTexture(texture, 0, 0, WHITE);
-        ClearBackground(BLACK);
-
-        EndMode2D();
-        EndDrawing();
-
-        UnloadTexture(texture);
-        pix_buf_idx = (pix_buf_idx == 1) ? 0 : 1;
-    }
-
-    CloseWindow();
-}
-
-void game_loop_video_capture(int fps, size_t width, size_t height, int pipe_write, size_t start_video){
+void game_loop(int fps, size_t width, size_t height, bool capture_video, size_t duration, int pipe_write, size_t start_video) {
     size_t frame_count = 0;
-    size_t duration = 20;
 
     PixelBuf* pixelbuffer[2] = {0};
     pixelbuffer[0] = create_pixelbuf(width, height);
@@ -154,19 +62,23 @@ void game_loop_video_capture(int fps, size_t width, size_t height, int pipe_writ
 
     fill_pixels(pixelbuffer[0], BLACK);
     fill_pixels(pixelbuffer[1], BLACK);
-
-    size_t pix_buf_idx = 0;
-    initialize_pixelbuf(pixelbuffer[0], 0.3f);
 
     InitWindow(width, height, "Game Of Life");
+
     SetTargetFPS(fps);
+
+    size_t pix_buf_idx = 0;
+    initialize_pixelbuf(pixelbuffer[0], 0.3f);
 
     // zoom stuff:
     Camera2D camera = { 0 };
     camera.zoom = 1.0f;
     int zoomMode = 1;
-
-    for (size_t i = 0; i < fps*duration && !WindowShouldClose(); ++i) {
+    bool running = true;
+    while (running && !WindowShouldClose()) {
+        if( capture_video &&(frame_count > fps*duration)){
+            running = false;
+        }
         if (IsKeyPressed(KEY_ONE)) zoomMode = 0;
         else if (IsKeyPressed(KEY_TWO)) zoomMode = 1;
 
@@ -225,9 +137,10 @@ void game_loop_video_capture(int fps, size_t width, size_t height, int pipe_writ
         EndMode2D();
         EndDrawing();
 
+        UnloadTexture(texture);
         pix_buf_idx = (pix_buf_idx == 1) ? 0 : 1;
 
-        if(frame_count > start_video) {
+        if((frame_count > start_video) && capture_video) {
             Image screen = LoadImageFromScreen();
             // flip image -> writing rows in reversed order
             for (size_t y = screen.height; y > 0; --y) {

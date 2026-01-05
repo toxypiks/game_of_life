@@ -68,7 +68,7 @@ int main (void)
     }
     close(pipefd[READ_END]);
 
-    game_loop_video_capture(FPS, WIDTH, HEIGHT, pipefd[WRITE_END], 100);
+    game_loop(FPS, WIDTH, HEIGHT, true, 10 ,pipefd[WRITE_END], 100);
 
     close(pipefd[WRITE_END]);
 
