@@ -9,6 +9,30 @@
 
 #include "game_of_life.h"
 
+void CustomTraceLog(int msgType, const char *text, va_list args)
+{
+    char timeStr[64] = { 0 };
+    time_t now = time(NULL);
+    struct tm *tm_info = localtime(&now);
+
+    if(msgType != LOG_INFO) {
+        strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", tm_info);
+        printf("[%s] ", timeStr);
+    }
+
+    switch (msgType)
+    {
+        case LOG_INFO: return; break;
+        case LOG_ERROR: printf("[ERROR]: "); break;
+        case LOG_WARNING: printf("[WARN] : "); break;
+        case LOG_DEBUG: printf("[DEBUG]: "); break;
+        default: break;
+    }
+
+    vprintf(text, args);
+    printf("\n");
+}
+
 unsigned int val(Color color){
     if(ColorToInt(color) == ColorToInt(WHITE)) {
         return 1;
@@ -59,6 +83,7 @@ void set_cell_states(PixelBuf* old_pixbuf, PixelBuf* new_pixbuf)
 }
 
 void game_loop(int fps, size_t width, size_t height, bool capture_video, size_t duration, int pipe_write, size_t start_video) {
+    SetTraceLogCallback(CustomTraceLog);
     size_t frame_count = 0;
 
     PixelBuf* pixelbuffer[2] = {0};
@@ -94,11 +119,11 @@ void game_loop(int fps, size_t width, size_t height, bool capture_video, size_t 
             camera.target = Vector2Add(camera.target, delta);
         }
 
-        if (zoomMode == 0)
+        if (zoomMode == 0) // and paint mode
         {
             // Zoom based on mouse wheel
             float wheel = GetMouseWheelMove();
-            if (wheel != 0)
+            if (wheel != 0) // and paint mode
             {
                 Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
                 camera.offset = GetMousePosition();
@@ -106,7 +131,12 @@ void game_loop(int fps, size_t width, size_t height, bool capture_video, size_t 
                 float scale = 0.2f*wheel;
                 camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0.125f, 64.0f);
             }
-        } else { // righclick zoom
+            if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+            {
+                Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
+                printf("coole x:%f y:%f\n", mouseWorldPos.x, mouseWorldPos.y);
+            }
+        } else { // rightclick zoom
             if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
             {
                 Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
