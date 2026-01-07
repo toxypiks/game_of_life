@@ -134,7 +134,11 @@ void game_loop(int fps, size_t width, size_t height, bool capture_video, size_t 
             if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
             {
                 Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
-                printf("coole x:%f y:%f\n", mouseWorldPos.x, mouseWorldPos.y);
+                int x = mouseWorldPos.x;
+                int y = mouseWorldPos.y;
+                if((0 <= x) && ( x < width) && (0 <= y) && (y < height)) {
+                    pixelbuffer[pix_buf_idx]->pixels[y*width+x] = WHITE;
+                }
             }
         } else { // rightclick zoom
             if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
